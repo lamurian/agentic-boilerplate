@@ -20,6 +20,7 @@ description: Single source of truth and the root reference for an AI agent
 - Prefer readability over cleverness: one-liners are not goals
 - Document relative path from the project root: `@/path/to/file.txt`
 - Any directory named archive/ at any depth MUST be ignored by all agentic tools
+- Follow the Concise skill for all output: no flattery, no hedging, short sentences, direct answers
 
 ## Nested AGENTS.md Files
 
@@ -50,6 +51,7 @@ initialized. Before any other lifecycle step:
 | **init** | `docs/agents/` is empty or not yet initialized | `@.agents/skills/init/SKILL.md` |
 | **brainstorm** | Starting a new feature or change plan | `@.agents/skills/brainstorm/SKILL.md` |
 | **implement** | User says "implement @path/to/plan.md" | `@.agents/skills/implement/SKILL.md` |
+| **concise** | Always active for all output | `@.agents/skills/concise/SKILL.md` |
 
 ## Documentation Limits
 
