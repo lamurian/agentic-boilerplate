@@ -46,12 +46,12 @@ initialized. Before any other lifecycle step:
 
 ## Available Skills
 
-| Skill | Trigger | File |
-|-------|---------|------|
-| **init** | `docs/agents/` is empty or not yet initialized | `@.agents/skills/init/SKILL.md` |
-| **brainstorm** | Starting a new feature or change plan | `@.agents/skills/brainstorm/SKILL.md` |
-| **implement** | User says "implement @path/to/plan.md" | `@.agents/skills/implement/SKILL.md` |
-| **concise** | Always active for all output | `@.agents/skills/concise/SKILL.md` |
+| Skill | Trigger | Description |
+|-------|---------|-------------|
+| init | `docs/agents/` is empty or not yet initialized | `@.agents/skills/init/SKILL.md` |
+| brainstorm | Starting a new feature or change plan | `@.agents/skills/brainstorm/SKILL.md` |
+| implement | User says "implement @path/to/plan.md" | `@.agents/skills/implement/SKILL.md` |
+| concise | Always active for all output | `@.agents/skills/concise/SKILL.md` |
 
 ## Documentation Limits
 

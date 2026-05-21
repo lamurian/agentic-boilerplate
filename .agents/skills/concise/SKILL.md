@@ -1,3 +1,8 @@
+---
+name: concise
+description: Always active for all output. Baseline conciseness — no flattery, no hedging, short sentences.
+---
+
 # Concise Skill — Output Discipline
 
 Always active for all output. No toggle.

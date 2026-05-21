@@ -1,14 +1,6 @@
 ---
 name: init
 description: One-time interactive project initialization — detects config, interviews user, generates docs/agents/*.md and ADRs
-license: MIT
-allowed-tools:
-  - read
-  - write
-  - bash
-  - glob
-  - grep
-  - question
 ---
 
 # Init Skill — Project Architecture Brainstorm

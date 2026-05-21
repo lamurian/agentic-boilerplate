@@ -1,3 +1,8 @@
+---
+name: implement
+description: Executes a plan file. Triggered when user says "implement @path/to/plan.md".
+---
+
 # Implement Skill — Task Lifecycle
 
 Use this skill when user says "implement @path/to/plan.md".

@@ -1,3 +1,8 @@
+---
+name: brainstorm
+description: Starting a new feature or change plan. Breaks requirements into work packages and writes plan files.
+---
+
 # Brainstorm Skill — Plan Lifecycle
 
 Use this skill when starting a new feature or change.
