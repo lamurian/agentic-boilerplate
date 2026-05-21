@@ -7,21 +7,21 @@ description: Single source of truth and the root reference for an AI agent
 
 - READ `@docs/agents/PROJECT_STRUCTURE.md` before creating or moving files
 - READ `@docs/agents/STANDARDS.md` before writing code
-- CHECK actual source — do NOT invent function names, types, or APIs
+- CHECK actual source: do NOT invent function names, types, or APIs
 - GREP existing patterns before adding dependencies or conventions
-- RUN tests after every change — fix failures immediately
-- When unsure, READ the codebase — do NOT guess
-- If a simpler approach exists, use it — no over-engineering
+- RUN tests after every change: fix failures immediately
+- When unsure, READ the codebase: do NOT guess
+- If a simpler approach exists, use it: no over-engineering
 
 ## Operating Procedures
 
-- Write tests alongside code — test behavior, not implementation
+- Write tests alongside code: test behavior, not implementation
 - Keep functions under 50 lines unless justified
-- Use explicit error handling — no silent catches or `throw Error`
-- Type everything explicitly — avoid `any` and inferred `as` casts
-- Prefer readability over cleverness — one-liners are not goals
+- Use explicit error handling: no silent catches or `throw Error`
+- Type everything explicitly: avoid `any` and inferred `as` casts
+- Prefer readability over cleverness: one-liners are not goals
 - Document relative path from the project root: `@/path/to/file.txt`
-- archive/: Any directory named archive/ at any depth MUST be ignored by all agentic tools. Do not read, load, summarize, or reference archived content. This covers docs/plans/archive/, docs/adr/archive/, and similar.
+- Any directory named archive/ at any depth MUST be ignored by all agentic tools
 
 ## Reference
 
@@ -41,22 +41,33 @@ Subdirectories may contain their own AGENTS.md with scope-specific instructions.
 
 - Before architecture changes: READ `@docs/agents/ARCHITECTURE.md` for existing decisions
 - New decisions: Create ADR at `@docs/ADR/NNN-title.md` (3-digit enum, <5 word title)
-- Format: YAML frontmatter (title, description, status, date) + H1 sections (Context, Decision, Impact) — use template at `@docs/templates/ADR.md`
+- Format: YAML frontmatter (title, description, status, date) + H1 sections (Context, Decision, Impact): use template at `@docs/templates/ADR.md`
 - After creating ADR: Update ARCHITECTURE.md to reference it with `@docs/ADR/NNN-title.md`
 
 ## Plan Lifecycle
 
-- User requests a feature → brainstorm → draft plan in docs/plans/ with atomic
-  build phases → write plan doc → create @TODO.md from plan checklist
-- Update @TODO.md checkboxes as each task completes
-- When all tasks are done and UAT passes: move plan file to docs/plans/archive/plan-name.md and archive TODO.md alongside it as docs/plans/archive/task-date-plan-name.md
+1. Brainstorm: Discuss feature with user.
+2. Clarify: Ask questions until scope is clear.
+3. Formulate WPs: Break into atomic work packages.
+4. Write plan: Create `@docs/plans/NNN-plan-name.md` per WP.
 
-## Work Package Tracking
+For detailed workflow, read `@.agents/skills/brainstorm/SKILL.md`.
 
-- @TODO.md: Active task tracker. Read before any work. Update checkboxes as tasks complete. Append new sub-tasks under the relevant WP section.
-- @docs/plans/: Active plans for the current work. Read the relevant plan before starting implementation of a given WP.
-- @docs/UAT/: User acceptance test procedures. Run the corresponding UAT after completing a WP implementation step.
+## Task Lifecycle
+
+Trigger: user says "implement @path/to/plan.md".
+
+1. Read plan: Understand the work packages.
+2. Create @TODO.md: Derive checklist from plan using `@docs/templates/todo.md`.
+3. Execute tasks: Work through TODO.md, update checkboxes after each.
+4. Auto-test: Run full test suite; fix failures before proceeding.
+5. Guide UAT: Run `@docs/UAT/` procedures.
+6. Archive: Move plan to `docs/plans/archive/` and TODO.md alongside.
+
+For detailed workflow, read `@.agents/skills/implement/SKILL.md`.
 
 ## Documentation Limits
 
-- All agentic documentation (AGENTS.md, plans, UAT, TODO.md, STANDARDS.md, ANTIPATTERN.md) must not exceed 100 lines per file. Split into focused sub-documents if needed. Prefer short sentences over long, complex ones.
+- Apply to all documentations in `.md`, `.mdx`, `.qmd` format.
+- The limit is 100 lines per document. Split to focused sub-documents if needed. Prefer short sentences over long, complex ones.
+- Hierarchical reference: only documents in the higher directory may refer the subdirectories

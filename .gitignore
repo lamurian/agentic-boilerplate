@@ -14,6 +14,7 @@ Thumbs.db
 # IDE
 .vscode/settings.json
 .idea/
+*.sw[po]
 
 # Dependencies
 node_modules/
@@ -29,3 +30,6 @@ target/
 # Environment
 *.env*
 !.env.example
+
+# Archive
+**/archive/**

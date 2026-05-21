@@ -1,9 +1,7 @@
 ---
 title: Plan Title (<5 words)
 description: One sentence summarizing the plan
-status: draft        # draft | active | completed | archived
 date: YYYY-MM-DD
-author: Author Name
 ---
 
 # Overview
@@ -28,3 +26,8 @@ What does this plan cover? Brief context and motivation.
 |------|-----------|--------|------------|
 | Risk 1 | High/Med/Low | High/Med/Low | Mitigation strategy |
 | Risk 2 | High/Med/Low | High/Med/Low | Mitigation strategy |
+
+# UAT
+
+1. Step to guide user testing
+2. Described until completion

@@ -8,6 +8,9 @@
 ├── docs/
 │   ├── ADR/                  Architecture Decision Records (shared)
 │   ├── agents/               AI agent instructions (≤100 lines each)
+│   ├── plans/                Feature/change plans (lifecycle-managed)
+│   ├── templates/            Document templates for agentic workflows
+│   ├── UAT/                  User acceptance test procedures
 │   └── wiki/                 Human-only documentation (guides, runbooks)
 │
 ├── scripts/                  Build and CI helper scripts
@@ -25,6 +28,9 @@
 | `AGENTS.md` | Project-level AI instructions — read first | Agent |
 | `docs/ADR/` | Architecture Decision Records | Both |
 | `docs/agents/` | Agent-only standards, structure, architecture, pitfalls | Agent |
+| `docs/plans/` | Feature/change plans with lifecycle tracking | Agent |
+| `docs/templates/` | Reusable document templates (AGENTS.md, ADR, plans, etc.) | Agent |
+| `docs/UAT/` | User acceptance test procedures | Agent |
 | `docs/wiki/` | Human design docs and runbooks | Human |
 | `scripts/` | Dev, build, deploy helper scripts | Both |
 | `src/` | Production application code | Both |
