@@ -1,7 +1,8 @@
 ---
 title: Title Matching Filename (<5 words)
 description: One sentence summarizing the decision
-status: proposed
+status: proposed     # proposed | accepted | deprecated | superseded
+date: YYYY-MM-DD
 ---
 
 # Context
