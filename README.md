@@ -16,13 +16,35 @@ AGENTS.md  ──────►  READ: docs/agents/STANDARDS.md         (conven
 3. **Agent docs are ≤100 lines each** — token-optimized for LLM context windows.
 4. **`docs/ADR/` records architectural decisions** — prevents contradictory approaches across sessions.
 
-## Quick Start
+## Usage
 
-1. Copy this structure into your project root.
-2. Run `make setup` to create tool-compatibility symlinks.
-3. Open the project with your AI agent — if `docs/agents/` is empty, the agent will detect this and run the **init skill** (`.agents/skills/init/SKILL.md`) to interview you and generate project-specific docs.
-4. Alternatively, manually edit `docs/agents/*.md` to fill in your stack, conventions, and structure.
-5. Commit everything and start coding with AI assistance.
+### New project — GitHub template
+Click **Use this template** on the [GitHub repo](https://github.com/lamurian/agentic-boilerplate) to create a fresh repository pre-populated with the boilerplate structure. Then run `make setup` and open with your AI agent.
+
+### Existing project — install script
+
+**macOS / Linux:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/lamurian/agentic-boilerplate/master/install.sh | bash
+```
+
+**Windows (cmd):**
+```cmd
+curl -fsSLo install.bat https://raw.githubusercontent.com/lamurian/agentic-boilerplate/master/install.bat && install.bat
+```
+
+**Windows (PowerShell):**
+```powershell
+iwr -useb https://raw.githubusercontent.com/lamurian/agentic-boilerplate/master/install.ps1 | iex
+```
+
+All installers download every file individually from the `master` branch — transparent and inspectable. For `.md` files that already exist, the template content is prepended with a YAML-aware merge (template front matter wins, existing body appended after a `---` separator).
+
+### After install
+1. Run `make setup` to create tool-compatibility symlinks.
+2. Open the project with your AI agent — if `docs/agents/` is empty, the agent will detect this and run the **init skill** (`.agents/skills/init/SKILL.md`) to interview you and generate project-specific docs.
+3. Alternatively, manually edit `docs/agents/*.md` to fill in your stack, conventions, and structure.
+4. Commit everything and start coding with AI assistance.
 
 ## File Reference
 

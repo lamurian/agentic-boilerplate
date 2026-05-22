@@ -31,5 +31,6 @@ target/
 *.env*
 !.env.example
 
-# Archive
+# Archive — ignore all files inside archive/ except .gitkeep
 **/archive/**
+!**/archive/.gitkeep
