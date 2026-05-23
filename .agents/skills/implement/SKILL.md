@@ -39,5 +39,5 @@ Use this skill when user says "implement @path/to/plan.md".
 
 ## 6. Archive
 
-- Move plan: `mv docs/plans/NNN-name.md docs/plans/archive/NNN-name.md`
-- Archive TODO: `mv TODO.md docs/plans/archive/TODO-NNN-name.md`
+- Move plan: `mv docs/plans/NNN-name.md docs/plans/.archive/NNN-name.md`
+- Archive TODO: `mv TODO.md docs/plans/.archive/TODO-NNN-name.md`

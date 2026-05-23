@@ -26,7 +26,7 @@ Copy templates from `@docs/templates/` when creating new documentation:
 
 - All agent-facing docs (AGENTS.md, plans, TODO.md, STANDARDS.md, etc.)
   must not exceed 100 lines per file. Split into focused sub-documents.
-- Any directory named `archive/` at any depth must be ignored by agents.
+- Any directory named `.archive/` at any depth must be ignored by agents.
   Do not read, load, summarize, or reference archived content.
 
 ## Conventions

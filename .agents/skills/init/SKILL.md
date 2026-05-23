@@ -82,6 +82,6 @@ Use `docs/templates/` as base and overlay answers from Phase 2-3. Keep each file
 
 ## Phase 5 — Self-cleanup
 
-1. `mv .agents/skills/init docs/plans/archive/init-skill/`
+1. `mv .agents/skills/init docs/plans/.archive/init-skill/`
 2. Remove or comment out "Step 0: Project Initialization" from root `AGENTS.md`
-3. The `archive/` directory is excluded from agent tools — init runs only once
+3. The `.archive/` directory is excluded from agent tools — init runs only once
