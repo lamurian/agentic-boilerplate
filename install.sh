@@ -159,8 +159,8 @@ for f in \
   docs/templates/ADR.md \
   docs/templates/AGENTS.md \
   docs/templates/ARCHITECTURE.md \
-  docs/templates/project_structure.md \
-  docs/templates/todo.md; do
+  docs/templates/PROJECT_STRUCTURE.md \
+  docs/templates/TODO.md; do
   install_md "$f"
 done
 

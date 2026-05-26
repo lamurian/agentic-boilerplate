@@ -111,8 +111,8 @@ $mdFiles = @(
     'docs/templates/ADR.md',
     'docs/templates/AGENTS.md',
     'docs/templates/ARCHITECTURE.md',
-    'docs/templates/project_structure.md',
-    'docs/templates/todo.md'
+    'docs/templates/PROJECT_STRUCTURE.md',
+    'docs/templates/TODO.md'
 )
 foreach ($f in $mdFiles) {
     $url = "$baseUrl/$($f -replace '\\', '/')"
