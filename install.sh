@@ -180,9 +180,9 @@ fi
 ensure_dir docs/agents
 ensure_dir docs/ADR
 ensure_dir docs/plans
-ensure_dir docs/plans/archive
+ensure_dir docs/plans/.archive
 ensure_dir docs/UAT
-ensure_dir docs/UAT/archive
+ensure_dir docs/UAT/.archive
 ensure_dir docs/wiki
 ensure_dir src
 

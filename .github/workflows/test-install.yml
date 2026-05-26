@@ -161,14 +161,45 @@ jobs:
           Push-Location $batDir
           try {
             .\install.bat
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           } finally {
             Pop-Location
           }
+          echo "BATDIR=$batDir" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Assertions on install.ps1 result (10 checks)
         run: |
           $pass = 0; $fail = 0
           $dir = $env:TMPDIR
+          Push-Location $dir
+          $files = @(
+            'AGENTS.md',
+            'Makefile',
+            '.gitignore',
+            'docs/agents/.gitkeep',
+            'docs/ADR/.gitkeep',
+            'docs/plans/.gitkeep',
+            'src/.gitkeep',
+            '.agents/skills/init/SKILL.md',
+            'docs/templates/ADR.md',
+            'docs/templates/todo.md'
+          )
+          foreach ($f in $files) {
+            if (Test-Path -LiteralPath $f -PathType Leaf) {
+              $pass++
+            } else {
+              $fail++
+              Write-Host "FAIL: $f"
+            }
+          }
+          Pop-Location
+          Write-Host "Result: $pass/$($pass + $fail) passed"
+          if ($fail -gt 0) { exit 1 }
+
+      - name: Assertions on install.bat result (10 checks)
+        run: |
+          $pass = 0; $fail = 0
+          $dir = $env:BATDIR
           Push-Location $dir
           $files = @(
             'AGENTS.md',
