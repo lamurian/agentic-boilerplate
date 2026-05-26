@@ -10,10 +10,8 @@ name: Test Install Scripts
 
 on:
   pull_request:
-    paths:
-      - install.sh
-      - install.ps1
-      - install.bat
+    branches:
+      - master
   workflow_dispatch:
 
 defaults:
