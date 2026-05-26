@@ -130,9 +130,9 @@ Merge-Gitignore "$baseUrl/.gitignore"
 Ensure-Dir 'docs/agents'
 Ensure-Dir 'docs/ADR'
 Ensure-Dir 'docs/plans'
-Ensure-Dir 'docs/plans/archive'
+Ensure-Dir 'docs/plans/.archive'
 Ensure-Dir 'docs/UAT'
-Ensure-Dir 'docs/UAT/archive'
+Ensure-Dir 'docs/UAT/.archive'
 Ensure-Dir 'docs/wiki'
 Ensure-Dir 'src'
 

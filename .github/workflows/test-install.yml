@@ -1,0 +1,232 @@
+# ---------------------------------------------------------------------------
+# Test Install Scripts
+# ---------------------------------------------------------------------------
+# Runs on every PR that touches install.sh, install.ps1, or install.bat.
+# Spins up a local HTTP server, patches BASE_URL to localhost, runs the
+# installer, and asserts 10 files/directories were created correctly.
+# ---------------------------------------------------------------------------
+
+name: Test Install Scripts
+
+on:
+  pull_request:
+    paths:
+      - install.sh
+      - install.ps1
+      - install.bat
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+# ── Jobs ──────────────────────────────────────────────────────────────
+
+jobs:
+  test-unix:
+    name: test-unix (${{ matrix.os }})
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Syntax validation ──────────────────────────────────────
+      - name: Shell syntax check
+        run: bash -n install.sh
+
+      - name: ShellCheck (Linux)
+        if: runner.os == 'Linux'
+        run: shellcheck install.sh
+
+      - name: Install ShellCheck (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install shellcheck
+          shellcheck install.sh
+
+      # ── Integration test ───────────────────────────────────────
+      - name: Start local HTTP server
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 &
+          SERVER_PID=$!
+          echo "SERVER_PID=$SERVER_PID" >> "$GITHUB_ENV"
+          sleep 2
+
+      - name: Patch BASE_URL for local testing
+        run: |
+          sed -i 's|https://raw\.githubusercontent\.com/lamurian/agentic-boilerplate/master|http://localhost:8765|' install.sh
+
+      - name: Run install.sh in temp directory
+        run: |
+          TMPDIR=$(mktemp -d)
+          cp install.sh "$TMPDIR/"
+          cd "$TMPDIR"
+          bash install.sh
+          echo "TMPDIR=$TMPDIR" >> "$GITHUB_ENV"
+
+      - name: Assertions (10 checks)
+        run: |
+          PASS=0; FAIL=0
+          cd "$TMPDIR"
+          for f in \
+            AGENTS.md \
+            Makefile \
+            .gitignore \
+            docs/agents/.gitkeep \
+            docs/ADR/.gitkeep \
+            docs/plans/.gitkeep \
+            src/.gitkeep \
+            .agents/skills/init/SKILL.md \
+            docs/templates/ADR.md \
+            docs/templates/todo.md; do
+            if [ -f "$f" ]; then
+              PASS=$((PASS + 1))
+            else
+              FAIL=$((FAIL + 1))
+              echo "FAIL: $f"
+            fi
+          done
+          echo "Result: $PASS/$((PASS + FAIL)) passed"
+          [ "$FAIL" -eq 0 ] || exit 1
+        env:
+          TMPDIR: ${{ env.TMPDIR }}
+
+      # ── Cleanup ────────────────────────────────────────────────
+      - name: Kill HTTP server
+        if: always()
+        run: kill "$SERVER_PID" || true
+
+  # ──────────────────────────────────────────────────────────────────────
+  test-windows:
+    name: test-windows
+    runs-on: windows-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Syntax validation ──────────────────────────────────────
+      - name: PSScriptAnalyzer
+        run: |
+          # Ensure NuGet provider is available (pre-req for Install-Module)
+          $null = Install-PackageProvider -Name NuGet -Force -ErrorAction SilentlyContinue
+          $m = Get-Module -ListAvailable PSScriptAnalyzer
+          if (-not $m) { Install-Module PSScriptAnalyzer -Force -Scope CurrentUser -AllowClobber }
+          Invoke-ScriptAnalyzer -Path install.ps1 -Severity Error
+
+      # ── Integration test ───────────────────────────────────────
+      - name: Start local HTTP server
+        run: |
+          $psi = Start-Process -NoNewWindow -PassThru python `
+            -ArgumentList "-m", "http.server", "8765", "--bind", "127.0.0.1"
+          Write-Host "SERVER_PID=$($psi.Id)"
+          echo "SERVER_PID=$($psi.Id)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Start-Sleep -Seconds 3
+
+      - name: Patch install.ps1 BASE_URL
+        run: |
+          $content = Get-Content install.ps1 -Raw
+          $content = $content -replace 'https://raw\.githubusercontent\.com/lamurian/agentic-boilerplate/master', 'http://localhost:8765'
+          Set-Content install.ps1 -Value $content
+
+      - name: Run install.ps1 in temp directory
+        run: |
+          $tmpDir = Join-Path $env:TEMP "agentic-test-$([System.IO.Path]::GetRandomFileName())"
+          New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
+          Copy-Item "$pwd\install.ps1" "$tmpDir\"
+          Push-Location $tmpDir
+          try {
+            .\install.ps1
+          } finally {
+            Pop-Location
+          }
+          Write-Host "TMPDIR=$tmpDir"
+          echo "TMPDIR=$tmpDir" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Run install.bat in separate temp directory
+        run: |
+          $batDir = Join-Path $env:TEMP "agentic-bat-test-$([System.IO.Path]::GetRandomFileName())"
+          New-Item -ItemType Directory -Path $batDir -Force | Out-Null
+          # Copy and patch install.bat
+          Copy-Item "$pwd\install.bat" "$batDir\"
+          $batContent = Get-Content "$batDir\install.bat" -Raw
+          $batContent = $batContent -replace 'https://raw\.githubusercontent\.com/lamurian/agentic-boilerplate/master', 'http://localhost:8765'
+          Set-Content "$batDir\install.bat" -Value $batContent
+          # Run install.bat — it will download the already-patched install.ps1 from the server
+          Push-Location $batDir
+          try {
+            .\install.bat
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          } finally {
+            Pop-Location
+          }
+          echo "BATDIR=$batDir" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Assertions on install.ps1 result (10 checks)
+        run: |
+          $pass = 0; $fail = 0
+          $dir = $env:TMPDIR
+          Push-Location $dir
+          $files = @(
+            'AGENTS.md',
+            'Makefile',
+            '.gitignore',
+            'docs/agents/.gitkeep',
+            'docs/ADR/.gitkeep',
+            'docs/plans/.gitkeep',
+            'src/.gitkeep',
+            '.agents/skills/init/SKILL.md',
+            'docs/templates/ADR.md',
+            'docs/templates/todo.md'
+          )
+          foreach ($f in $files) {
+            if (Test-Path -LiteralPath $f -PathType Leaf) {
+              $pass++
+            } else {
+              $fail++
+              Write-Host "FAIL: $f"
+            }
+          }
+          Pop-Location
+          Write-Host "Result: $pass/$($pass + $fail) passed"
+          if ($fail -gt 0) { exit 1 }
+
+      - name: Assertions on install.bat result (10 checks)
+        run: |
+          $pass = 0; $fail = 0
+          $dir = $env:BATDIR
+          Push-Location $dir
+          $files = @(
+            'AGENTS.md',
+            'Makefile',
+            '.gitignore',
+            'docs/agents/.gitkeep',
+            'docs/ADR/.gitkeep',
+            'docs/plans/.gitkeep',
+            'src/.gitkeep',
+            '.agents/skills/init/SKILL.md',
+            'docs/templates/ADR.md',
+            'docs/templates/todo.md'
+          )
+          foreach ($f in $files) {
+            if (Test-Path -LiteralPath $f -PathType Leaf) {
+              $pass++
+            } else {
+              $fail++
+              Write-Host "FAIL: $f"
+            }
+          }
+          Pop-Location
+          Write-Host "Result: $pass/$($pass + $fail) passed"
+          if ($fail -gt 0) { exit 1 }
+
+      # ── Cleanup ────────────────────────────────────────────────
+      - name: Kill HTTP server
+        if: always()
+        run: |
+          Stop-Process -Id $env:SERVER_PID -Force -ErrorAction SilentlyContinue
