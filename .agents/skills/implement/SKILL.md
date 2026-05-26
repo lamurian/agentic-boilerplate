@@ -14,7 +14,7 @@ Use this skill when user says "implement @path/to/plan.md".
 
 ## 2. Create @TODO.md
 
-- Copy `@docs/templates/todo.md` to `@TODO.md` at project root.
+- Copy `@docs/templates/TODO.md` to `@TODO.md` at project root.
 - Map each WP from the plan to a `## WP-N:` section.
 - Add checklist items under each WP.
 

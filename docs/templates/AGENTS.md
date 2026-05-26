@@ -17,10 +17,10 @@ Copy templates from `@docs/templates/` when creating new documentation:
 |----------|---------------------|
 | `AGENTS.md` | Subdirectory agent instruction files |
 | `000-plan.md` | Feature or change plans under `docs/plans/` |
-| `todo.md` | Task trackers derived from a plan |
 | `ADR.md` | Architecture decision records under `docs/ADR/` |
-| `architecture.md` | System architecture overviews |
-| `project_structure.md` | Project directory maps |
+| `ARCHITECTURE.md` | System architecture overviews |
+| `PROJECT_STRUCTURE.md` | Project directory maps |
+| `TODO.md` | Task trackers derived from a plan |
 
 ## Documentation Limits
 
@@ -33,5 +33,5 @@ Copy templates from `@docs/templates/` when creating new documentation:
 
 - Internal links use the `@` prefix: `@docs/templates/AGENTS.md`
 - Most markdown files require YAML frontmatter (`title`, `description`,
-  plus type-specific fields). Exception: `todo.md` has no frontmatter.
+  plus type-specific fields). Exception: `TODO.md` has no frontmatter.
 - Prefer short sentences and imperative tone. No emojis in agent docs.

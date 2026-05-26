@@ -1,127 +1,149 @@
-#!/usr/bin/env bash
+#!/bin/sh
 #
 # install.sh — agentic-boilerplate installer for macOS/Linux
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/lamurian/agentic-boilerplate/master/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/lamurian/agentic-boilerplate/master/install.sh | sh
 #
 # Downloads every file individually from the master branch so you can
 # inspect exactly what runs. For .md files, if the target already exists
 # the installer does a YAML-aware prepend merge (template front matter
 # wins, existing body appended after a --- separator).
 #
-set -euo pipefail
+set -eu
 
 BASE_URL="https://raw.githubusercontent.com/lamurian/agentic-boilerplate/master"
+
+# Literal newline (POSIX-compatible)
+# shellcheck disable=SC2034 # used indirectly inside ${...%$NL}
+NL='
+'
+
+# ── Portable temp directory ──────────────────────────────────────────
+
+_TMPDIR=""
+if command -v mktemp >/dev/null 2>&1; then
+  _TMPDIR=$(mktemp -d 2>/dev/null || mktemp 2>/dev/null) || _TMPDIR=""
+fi
+if [ -z "$_TMPDIR" ]; then
+  _TMPDIR="${TMPDIR:-/tmp}/agentic-boilerplate.$$"
+  mkdir -p "$_TMPDIR"
+fi
+
+trap 'rm -rf "$_TMPDIR"' EXIT HUP INT TERM
 
 # ── Helpers ──────────────────────────────────────────────────────────
 
 # Parse a file into YAML front matter and body.
-# Usage: parse_frontmatter FILE fm_var body_var
-# Sets fm_var to "" when the file has no front matter.
+# Writes two files into <outdir>:
+#   <outdir>/fm    — front matter (empty string if none)
+#   <outdir>/body  — body content
 parse_frontmatter() {
-  local file="$1" fm_var="$2" body_var="$3"
-  local state="outside" fm="" body=""
-  while IFS= read -r line; do
-    case "$state" in
+  _pf_file="$1"
+  _pf_outdir="$2"
+  _pf_state="outside"
+  _pf_fm=""
+  _pf_body=""
+  while IFS= read -r _pf_line; do
+    case "$_pf_state" in
       outside)
-        if [ "$line" = "---" ]; then
-          state="fm"
+        if [ "$_pf_line" = "---" ]; then
+          _pf_state="fm"
         else
-          body="$line"
-          state="body"
+          _pf_body="$_pf_line"
+          _pf_state="body"
         fi
         ;;
       fm)
-        if [ "$line" = "---" ]; then
-          state="body"
+        if [ "$_pf_line" = "---" ]; then
+          _pf_state="body"
         else
-          fm="$fm$line"$'\n'
+          _pf_fm="$_pf_fm$_pf_line$NL"
         fi
         ;;
       body)
-        body="$body"$'\n'"$line"
+        _pf_body="$_pf_body$NL$_pf_line"
         ;;
     esac
-  done < "$file"
+  done < "$_pf_file"
   # Strip trailing newline from body if present
-  body="${body%"$'\n'"}"
+  _pf_body="${_pf_body%"$NL"}"
   # If we never transitioned out of "outside", the file was empty
-  [ "$state" = "outside" ] && body=""
-  # If fm was set but body was empty after front matter, body stays ""
-  printf -v "$fm_var" "%s" "${fm%$'\n'}"
-  printf -v "$body_var" "%s" "$body"
+  [ "$_pf_state" = "outside" ] && _pf_body=""
+  # Write output files
+  printf '%s\n' "${_pf_fm%"$NL"}" > "$_pf_outdir/fm"
+  printf '%s\n' "$_pf_body" > "$_pf_outdir/body"
 }
 
 # Install a .md file — download and YAML-merge when target exists.
 install_md() {
-  local path="$1" tmpfile
-  tmpfile=$(mktemp) || return 1
-  mkdir -p "$(dirname "$path")"
-  if ! curl -fsSL "$BASE_URL/$path" -o "$tmpfile"; then
-    rm -f "$tmpfile"
-    echo "  x Failed to download $path" >&2
+  _im_path="$1"
+  _im_tmpfile="$_TMPDIR/md"
+  mkdir -p "$(dirname "$_im_path")"
+  if ! curl -fsSL "$BASE_URL/$_im_path" -o "$_im_tmpfile"; then
+    rm -f "$_im_tmpfile"
+    printf '  x Failed to download %s\n' "$_im_path" >&2
     return 1
   fi
-  if [ -e "$path" ]; then
-    # shellcheck disable=SC2034 # e_fm parsed but unused (template front matter wins)
-    local t_fm t_body e_fm e_body
-    parse_frontmatter "$tmpfile" t_fm t_body
-    parse_frontmatter "$path" e_fm e_body
+  if [ -e "$_im_path" ]; then
+    parse_frontmatter "$_im_tmpfile" "$_TMPDIR"
+    _im_t_fm=$(cat "$_TMPDIR/fm")
+    _im_t_body=$(cat "$_TMPDIR/body")
+    parse_frontmatter "$_im_path" "$_TMPDIR"
+    _im_e_body=$(cat "$_TMPDIR/body")
     {
-      if [ -n "$t_fm" ]; then
-        echo "---"
-        echo "$t_fm"
-        echo "---"
-        echo ""
+      if [ -n "$_im_t_fm" ]; then
+        printf '%s\n' "---"
+        printf '%s\n' "$_im_t_fm"
+        printf '%s\n' "---"
+        printf '%s\n' ""
       fi
-      [ -n "$t_body" ] && echo "$t_body"
-      echo ""
-      echo "---"
-      echo ""
-      echo "$e_body"
-    } > "$path"
-    echo "  ~ Merged $path"
+      [ -n "$_im_t_body" ] && printf '%s\n' "$_im_t_body"
+      printf '%s\n' ""
+      printf '%s\n' "---"
+      printf '%s\n' ""
+      printf '%s\n' "$_im_e_body"
+    } > "$_im_path"
+    printf '  ~ Merged %s\n' "$_im_path"
   else
-    mv "$tmpfile" "$path"
-    echo "  + Created $path"
+    mv "$_im_tmpfile" "$_im_path"
+    printf '  + Created %s\n' "$_im_path"
   fi
-  rm -f "$tmpfile"
 }
 
 # Install a non-.md file (skip when target exists).
 install_other() {
-  local path="$1"
-  if [ -e "$path" ]; then
-    echo "  - Skipped $path (exists)"
+  _io_path="$1"
+  if [ -e "$_io_path" ]; then
+    printf '  - Skipped %s (exists)\n' "$_io_path"
     return 0
   fi
-  mkdir -p "$(dirname "$path")"
-  if curl -fsSL "$BASE_URL/$path" -o "$path"; then
-    echo "  + Created $path"
+  mkdir -p "$(dirname "$_io_path")"
+  if curl -fsSL "$BASE_URL/$_io_path" -o "$_io_path"; then
+    printf '  + Created %s\n' "$_io_path"
   else
-    rm -f "$path"
-    echo "  x Failed to download $path" >&2
+    rm -f "$_io_path"
+    printf '  x Failed to download %s\n' "$_io_path" >&2
     return 1
   fi
 }
 
 # Ensure a directory exists with a .gitkeep placeholder.
 ensure_dir() {
-  local dir="$1"
-  mkdir -p "$dir"
-  if [ ! -e "$dir/.gitkeep" ]; then
-    touch "$dir/.gitkeep"
-    echo "  + Created $dir/"
+  _ed_dir="$1"
+  mkdir -p "$_ed_dir"
+  if [ ! -e "$_ed_dir/.gitkeep" ]; then
+    touch "$_ed_dir/.gitkeep"
+    printf '  + Created %s/\n' "$_ed_dir"
   else
-    echo "  - Skipped $dir/ (exists)"
+    printf '  - Skipped %s/ (exists)\n' "$_ed_dir"
   fi
 }
 
 # ── Installation ─────────────────────────────────────────────────────
 
-echo "agentic-boilerplate — installing into $(pwd)"
-echo ""
+printf 'agentic-boilerplate — installing into %s\n' "$(pwd)"
+printf '\n'
 
 # .md files (YAML-aware prepend merge)
 for f in \
@@ -137,8 +159,8 @@ for f in \
   docs/templates/ADR.md \
   docs/templates/AGENTS.md \
   docs/templates/ARCHITECTURE.md \
-  docs/templates/project_structure.md \
-  docs/templates/todo.md; do
+  docs/templates/PROJECT_STRUCTURE.md \
+  docs/templates/TODO.md; do
   install_md "$f"
 done
 
@@ -148,32 +170,32 @@ install_other .agents/skills/init/scripts/detect.sh
 
 # .gitignore — merge missing entries from template
 if [ -e .gitignore ]; then
-  local_ifs="$IFS"
-  while IFS= read -r line || [ -n "$line" ]; do
+  _gi_template="$_TMPDIR/gitignore"
+  curl -fsSL "$BASE_URL/.gitignore" -o "$_gi_template"
+  while IFS= read -r _gi_line || [ -n "$_gi_line" ]; do
     # Skip empty lines and comments, check if line already present
-    case "$line" in
+    case "$_gi_line" in
       "" | "#"*) continue ;;
     esac
-    if ! grep -qxF "$line" .gitignore 2>/dev/null; then
+    if ! grep -qxF "$_gi_line" .gitignore 2>/dev/null; then
       # First missing entry gets a header
       if [ -z "${GIMERGED:-}" ]; then
-        echo "" >> .gitignore
-        echo "# agentic-boilerplate" >> .gitignore
+        printf '\n' >> .gitignore
+        printf '# agentic-boilerplate\n' >> .gitignore
         GIMERGED=1
       fi
-      echo "$line" >> .gitignore
+      printf '%s\n' "$_gi_line" >> .gitignore
     fi
-  done < <(curl -fsSL "$BASE_URL/.gitignore")
-  IFS="$local_ifs"
+  done < "$_gi_template"
   if [ -n "${GIMERGED:-}" ]; then
-    echo "  ~ Merged .gitignore"
+    printf '  ~ Merged .gitignore\n'
   else
-    echo "  - Skipped .gitignore (up to date)"
+    printf '  - Skipped .gitignore (up to date)\n'
   fi
   unset GIMERGED
 else
   curl -fsSL "$BASE_URL/.gitignore" -o .gitignore
-  echo "  + Created .gitignore"
+  printf '  + Created .gitignore\n'
 fi
 
 # Directory structure
@@ -186,14 +208,14 @@ ensure_dir docs/UAT/.archive
 ensure_dir docs/wiki
 ensure_dir src
 
-echo ""
-echo "Done."
-echo ""
-echo "Next step:"
-echo "  make setup"
-echo "    Creates symlinks for AI-tool compatibility"
-echo "    (.cursorrules, .windsurfrules, CLAUDE.md -> AGENTS.md)"
-echo ""
-echo "Then open the project with your AI agent."
-echo "If docs/agents/ is empty, the init skill will prompt you"
-echo "to configure project-specific docs."
+printf '\n'
+printf 'Done.\n'
+printf '\n'
+printf 'Next step:\n'
+printf '  make setup\n'
+printf '    Creates symlinks for AI-tool compatibility\n'
+printf '    (.cursorrules, .windsurfrules, CLAUDE.md -> AGENTS.md)\n'
+printf '\n'
+printf 'Then open the project with your AI agent.\n'
+printf 'If docs/agents/ is empty, the init skill will prompt you\n'
+printf 'to configure project-specific docs.\n'
